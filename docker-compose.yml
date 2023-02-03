@@ -5,6 +5,7 @@ services:
     container_name: s3
     volumes:
         - ./buckets:/data:consistent
+        - ./buckets/mlflow:/mlflow
     expose:
         - "5001"
     ports:
@@ -32,12 +33,16 @@ services:
         - MYSQL_USER=${MYSQL_USER}
         - MYSQL_PASSWORD=${MYSQL_PASSWORD}
         - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+    volumes:
+        - ./dbdata:/var/lib/mysql
         
   mlflow:
     restart: always
     build: .
     image: mlflow_server
     container_name: mlflow_server
+    expose:
+        - "5000"
     ports:
         - "5000:5000"
     networks: 
@@ -49,8 +54,6 @@ services:
     command: mlflow server --host 0.0.0.0 --backend-store-uri mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@db:3306/${MYSQL_DATABASE} --default-artifact-root s3://mlflow
     depends_on: 
         - db
-    volumes:
-        - ./test:/test
     
 networks:
     mlflow:
